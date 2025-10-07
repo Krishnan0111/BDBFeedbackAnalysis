@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trainers Analysis | BDB Feedback</title>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-indigo-700 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <i data-feather="users" class="h-6 w-6 mr-2"></i>
+                    <span class="text-xl font-semibold">BDB Feedback Analytics</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="index.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-600">Dashboard</a>
+                        <a href="colleges.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-600">Colleges</a>
+                        <a href="subjects.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-600">Subjects</a>
+                        <a href="trainers.html" class="px-3 py-2 rounded-md text-sm font-medium bg-indigo-900">Trainers</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Trainer Performance</h1>
+            <p class="mt-2 text-gray-600">Detailed analysis by trainer</p>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-lg font-medium mb-4">Top 5 Trainers</h2>
+                <div class="h-80">
+                    <canvas id="topTrainersChart"></canvas>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-lg font-medium mb-4">Score Distribution</h2>
+                <div class="h-80">
+                    <canvas id="scoreDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-medium text-gray-900">Trainer Details</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trainer</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Score</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subjects</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trainer-details-body" class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    <script>
+        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1nCG_kW1WdOykXAb-dPF9PSgEnQj6KSLbqkgxMfRhfQ0/edit?gid=2106409687#gid=2106409687'; // <-- PASTE YOUR URL HERE
+
+        async function fetchData() {
+            const response = await fetch(SHEET_URL);
+            const text = await response.text();
+            return text.split('\n').map(row => row.split(','));
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const data = await fetchData();
+            const headers = data[0];
+            const rows = data.slice(1);
+            
+            const processedData = rows.map(row => {
+                const rowData = {};
+                headers.forEach((header, index) => {
+                    rowData[header.trim()] = row[index] ? row[index].trim() : '';
+                });
+                return rowData;
+            });
+
+            createTopTrainersChart(processedData);
+            createScoreDistributionChart(processedData);
+            populateTrainerTable(processedData);
+        });
+
+        function createTopTrainersChart(data) {
+            const trainers = [...new Set(data.map(row => row['Trainer Name']))];
+            const trainerScores = trainers.map(trainer => {
+                const trainerRows = data.filter(row => row['Trainer Name'] === trainer);
+                const avgScore = (trainerRows.map(r => parseFloat(r['Trainer Score'])).reduce((a, b) => a + b, 0) / trainerRows.length);
+                return { trainer, avgScore };
+            }).sort((a, b) => b.avgScore - a.avgScore);
+            
+            new Chart(document.getElementById('topTrainersChart'), {
+                type: 'bar',
+                data: {
+                    labels: trainerScores.slice(0, 5).map(t => t.trainer),
+                    datasets: [{
+                        label: 'Average Score',
+                        data: trainerScores.slice(0, 5).map(t => t.avgScore.toFixed(2)),
+                        backgroundColor: 'rgba(79, 70, 229, 0.7)'
+                    }]
+                },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
+            });
+        }
+        
+        function createScoreDistributionChart(data) {
+            const scores = data.map(row => parseFloat(row['Trainer Score']));
+            const bins = { '0-6': 0, '6-8': 0, '8-10': 0 };
+            scores.forEach(score => {
+                if (score < 6) bins['0-6']++;
+                else if (score < 8) bins['6-8']++;
+                else bins['8-10']++;
+            });
+
+            new Chart(document.getElementById('scoreDistributionChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(bins),
+                    datasets: [{
+                        data: Object.values(bins),
+                        backgroundColor: ['#EF4444', '#F59E0B', '#10B981']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+        
+        function populateTrainerTable(data) {
+            const trainers = [...new Set(data.map(row => row['Trainer Name']))];
+            const tableBody = document.getElementById('trainer-details-body');
+            tableBody.innerHTML = '';
+            
+            trainers.forEach(trainer => {
+                const trainerRows = data.filter(row => row['Trainer Name'] === trainer);
+                const avgScore = (trainerRows.map(r => parseFloat(r['Trainer Score'])).reduce((a, b) => a + b, 0) / trainerRows.length).toFixed(2);
+                const subjects = [...new Set(trainerRows.map(r => r['Subject']))].join(', ');
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap font-medium">${trainer}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${avgScore}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${subjects}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+</html>
