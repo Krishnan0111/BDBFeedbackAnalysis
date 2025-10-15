@@ -4,10 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Colleges Analysis | BDB Feedback</title>
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        .loader {
+            border: 4px solid #f3f3f3; border-top: 4px solid #4f46e5; border-radius: 50%;
+            width: 40px; height: 40px; animation: spin 1s linear infinite;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
 <body class="bg-gray-50">
     <nav class="bg-indigo-700 text-white shadow-lg">
@@ -29,7 +36,7 @@
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main id="dashboard-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 opacity-0 transition-opacity duration-500">
         <div class="mb-8">
             <h1 class="text-3xl font-bold text-gray-900">College Performance</h1>
             <p class="mt-2 text-gray-600">Detailed analysis by college</p>
@@ -38,15 +45,11 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             <div class="bg-white p-6 rounded-lg shadow">
                 <h2 class="text-lg font-medium mb-4">Top Performing Colleges</h2>
-                <div class="h-64">
-                    <canvas id="collegeRankingChart"></canvas>
-                </div>
+                <div class="h-64"><canvas id="collegeRankingChart"></canvas></div>
             </div>
             <div class="bg-white p-6 rounded-lg shadow">
                 <h2 class="text-lg font-medium mb-4">Score Distribution</h2>
-                <div class="h-64">
-                    <canvas id="collegeBoxPlot"></canvas>
-                </div>
+                <div class="h-64"><canvas id="collegeBoxPlot"></canvas></div>
             </div>
         </div>
 
@@ -65,38 +68,46 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action Items</th>
                         </tr>
                     </thead>
-                    <tbody id="college-comparison-body" class="bg-white divide-y divide-gray-200">
-                        </tbody>
+                    <tbody id="college-comparison-body" class="bg-white divide-y divide-gray-200"></tbody>
                 </table>
             </div>
         </div>
     </main>
+    <div id="loader" class="loader"></div>
+    <div id="error-message" class="hidden text-center text-red-500 font-semibold p-8"></div>
     
     <script>
-        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRHMCQmrUMlY2rJZdJmfQGH66L2bsUsNIuM6JLFab2dh72aBnN0fCo5w4qbShEpI4LwebsX_nfmUxxO/pub?output=csv'; // <-- PASTE YOUR URL HERE
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx0L61joIbF6rMUe1nOmwUJ8fn3RlUsI2NB5f1uus-1j-Cs7wYIwKkfJmj1S2HuKSS5UQ/exec';
 
         async function fetchData() {
-            const response = await fetch(SHEET_URL);
-            const text = await response.text();
-            return text.split('\n').map(row => row.split(','));
+            if (!SCRIPT_URL || SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbx0L61joIbF6rMUe1nOmwUJ8fn3RlUsI2NB5f1uus-1j-Cs7wYIwKkfJmj1S2HuKSS5UQ/exec') {
+                document.getElementById('error-message').innerHTML = `<p><strong>Configuration Error:</strong> Please paste your Google Apps Script URL into this file.</p>`;
+                document.getElementById('error-message').classList.remove('hidden');
+                return null;
+            }
+            try {
+                const response = await fetch(SCRIPT_URL);
+                if (!response.ok) throw new Error(`Network error: ${response.statusText}`);
+                const data = await response.json();
+                if (data.error) throw new Error(`Script error: ${data.error}`);
+                return data;
+            } catch (error) {
+                document.getElementById('error-message').textContent = `Failed to load data: ${error.message}`;
+                document.getElementById('error-message').classList.remove('hidden');
+                return null;
+            }
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
             const data = await fetchData();
-            const headers = data[0];
-            const rows = data.slice(1);
-            
-            const processedData = rows.map(row => {
-                const rowData = {};
-                headers.forEach((header, index) => {
-                    rowData[header.trim()] = row[index] ? row[index].trim() : '';
-                });
-                return rowData;
-            });
-
-            createCollegeRankingChart(processedData);
-            createCollegeBoxPlot(processedData);
-            populateCollegeComparisonTable(processedData);
+            document.getElementById('loader').style.display = 'none';
+            if (data) {
+                document.getElementById('dashboard-content').classList.add('opacity-100');
+                createCollegeRankingChart(data);
+                createCollegeBoxPlot(data);
+                populateCollegeComparisonTable(data);
+            }
+            feather.replace();
         });
 
         function createCollegeRankingChart(data) {
@@ -122,8 +133,6 @@
         }
         
         function createCollegeBoxPlot(data) {
-            // Chart.js does not support box plots out of the box. A more complex library or plugin would be needed.
-            // This is a simplified bar chart showing score ranges instead.
             const colleges = [...new Set(data.map(row => row['College']))];
             const scoreRanges = {
                 '0-6': colleges.map(c => data.filter(r => r.College === c && ((parseFloat(r['Content Score']) + parseFloat(r['Trainer Score'])) / 2) < 6).length),
@@ -136,9 +145,9 @@
                 data: {
                     labels: colleges,
                     datasets: [
-                        { label: '0-6', data: scoreRanges['0-6'], backgroundColor: '#EF4444' },
-                        { label: '6-8', data: scoreRanges['6-8'], backgroundColor: '#F59E0B' },
-                        { label: '8-10', data: scoreRanges['8-10'], backgroundColor: '#10B981' }
+                        { label: 'Low (0-6)', data: scoreRanges['0-6'], backgroundColor: '#EF4444' },
+                        { label: 'Medium (6-8)', data: scoreRanges['6-8'], backgroundColor: '#F59E0B' },
+                        { label: 'High (8-10)', data: scoreRanges['8-10'], backgroundColor: '#10B981' }
                     ]
                 },
                 options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } }
@@ -163,17 +172,11 @@
                     <td class="px-6 py-4 whitespace-nowrap">${avgContent}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${avgTrainer}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${subjectsCount}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${lowScores > 0 ? `${lowScores} subjects need review` : '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm ${lowScores > 0 ? 'text-red-600 font-semibold' : ''}">${lowScores > 0 ? `${lowScores} subjects need review` : 'All Good'}</td>
                 `;
                 tableBody.appendChild(tr);
             });
         }
     </script>
 </body>
-
 </html>
-
-
-
-
-
