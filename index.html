@@ -161,11 +161,11 @@
 
     <script>
         // --- DATA FETCHING AND PROCESSING ---
-        const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx0L61joIbF6rMUe1nOmwUJ8fn3RlUsI2NB5f1uus-1j-Cs7wYIwKkfJmj1S2HuKSS5UQ/exec';
 
         async function fetchData() {
             // Check if the placeholder URL is still there
-            if (SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL') {
+            if (SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbx0L61joIbF6rMUe1nOmwUJ8fn3RlUsI2NB5f1uus-1j-Cs7wYIwKkfJmj1S2HuKSS5UQ/exec') {
                 document.getElementById('error-message').innerHTML = `<p><strong>Configuration Error:</strong> Please paste your Google Apps Script URL into this file.</p>`;
                 document.getElementById('error-message').classList.remove('hidden');
                 return null;
@@ -319,4 +319,5 @@
     </script>
 </body>
 </html>
+
 
