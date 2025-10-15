@@ -28,6 +28,23 @@
             transform: scale(1.1);
             z-index: 10;
         }
+        /* Basic loader style */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-gray-50 font-sans antialiased">
@@ -51,53 +68,18 @@
             </div>
         </nav>
 
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="mb-8">
+        <main id="dashboard-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 opacity-0 transition-opacity duration-500">
+             <div class="mb-8">
                 <h1 class="text-3xl font-bold text-gray-900">Student Feedback Analysis</h1>
                 <p class="mt-2 text-gray-600">Aug-Sept 2025 Semester Data Visualization</p>
             </div>
 
+            <!-- Filters Section -->
             <div class="bg-white rounded-lg shadow p-6 mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">College</label>
-                    <select class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                        <option>All Colleges</option>
-                        <option>Thakur College</option>
-                        <option>KES College</option>
-                        <option>Hinduja College</option>
-                        <option>NK College</option>
-                        <option>Raheja College</option>
-                        <option>Pillai College</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Semester</label>
-                    <select class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                        <option>All Semesters</option>
-                        <option>Semester 1</option>
-                        <option>Semester 3</option>
-                        <option>Semester 5</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Curriculum</label>
-                    <select class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                        <option>Both</option>
-                        <option>Old Curriculum</option>
-                        <option>New Curriculum</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Score Range</label>
-                    <select class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                        <option>All Scores</option>
-                        <option>High (8-10)</option>
-                        <option>Medium (6-8)</option>
-                        <option>Low (Below 6)</option>
-                    </select>
-                </div>
+                 <!-- Filter dropdowns will be populated dynamically -->
             </div>
 
+            <!-- Summary Cards -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div class="bg-white rounded-lg shadow p-6 card-hover transition-all duration-300">
                     <div class="flex items-center">
@@ -106,7 +88,7 @@
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-500">Avg Content Score</p>
-                            <p id="avg-content-score" class="text-2xl font-semibold text-gray-900">Loading...</p>
+                            <p id="avg-content-score" class="text-2xl font-semibold text-gray-900">...</p>
                         </div>
                     </div>
                 </div>
@@ -117,7 +99,7 @@
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-500">Avg Trainer Score</p>
-                            <p id="avg-trainer-score" class="text-2xl font-semibold text-gray-900">Loading...</p>
+                            <p id="avg-trainer-score" class="text-2xl font-semibold text-gray-900">...</p>
                         </div>
                     </div>
                 </div>
@@ -128,7 +110,7 @@
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-500">Highest Score</p>
-                            <p id="highest-score" class="text-2xl font-semibold text-gray-900">Loading...</p>
+                            <p id="highest-score" class="text-2xl font-semibold text-gray-900">...</p>
                         </div>
                     </div>
                 </div>
@@ -139,34 +121,28 @@
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-500">Lowest Score</p>
-                            <p id="lowest-score" class="text-2xl font-semibold text-gray-900">Loading...</p>
+                            <p id="lowest-score" class="text-2xl font-semibold text-gray-900">...</p>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Charts -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div class="bg-white rounded-lg shadow p-6">
                     <h2 class="text-lg font-medium text-gray-900 mb-4">College Performance Comparison</h2>
-                    <div class="h-80">
-                        <canvas id="collegeRadarChart"></canvas>
-                    </div>
+                    <div class="h-80"><canvas id="collegeRadarChart"></canvas></div>
                 </div>
-                
                 <div class="bg-white rounded-lg shadow p-6">
                     <h2 class="text-lg font-medium text-gray-900 mb-4">Performance by Semester</h2>
-                    <div class="h-80">
-                        <canvas id="semesterBarChart"></canvas>
-                    </div>
+                    <div class="h-80"><canvas id="semesterBarChart"></canvas></div>
                 </div>
             </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div class="bg-white rounded-lg shadow p-6">
                     <h2 class="text-lg font-medium text-gray-900 mb-4">Subject Performance Heatmap</h2>
                     <div id="heatmap" class="h-96"></div>
                 </div>
-                
                 <div class="bg-white rounded-lg shadow p-6">
                     <h2 class="text-lg font-medium text-gray-900 mb-4">Priority Action Items</h2>
                     <div class="overflow-y-auto max-h-96">
@@ -178,55 +154,243 @@
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="action-items-body" class="bg-white divide-y divide-gray-200">
-                                </tbody>
+                            <tbody id="action-items-body" class="bg-white divide-y divide-gray-200"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </main>
+        <div id="loader" class="loader"></div>
+        <div id="error-message" class="hidden text-center text-red-500 font-semibold p-8"></div>
     </div>
 
     <script>
         // --- DATA FETCHING AND PROCESSING ---
-        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRHMCQmrUMlY2rJZdJmfQGH66L2bsUsNIuM6JLFab2dh72aBnN0fCo5w4qbShEpI4LwebsX_nfmUxxO/pub?output=csv'; // <-- PASTE YOUR URL HERE
+        // IMPORTANT: Replace this URL with the one you get after deploying your Google Apps Script Web App
+        const SCRIPT_URL = '<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BDB Feedback Analytics Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        .grid-bg {
+            background-image: linear-gradient(to right, #f3f4f6 1px, transparent 1px),
+                              linear-gradient(to bottom, #f3f4f6 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .heatmap-cell {
+            transition: all 0.3s ease;
+        }
+        .heatmap-cell:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+        /* Basic loader style */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans antialiased">
+    <div id="app" class="min-h-screen">
+        <nav class="bg-indigo-700 text-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16 items-center">
+                    <div class="flex items-center">
+                        <i data-feather="book-open" class="h-6 w-6 mr-2"></i>
+                        <span class="text-xl font-semibold">BDB Feedback Analytics</span>
+                    </div>
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-4">
+                            <a href="index.html" class="px-3 py-2 rounded-md text-sm font-medium bg-indigo-900">Dashboard</a>
+                            <a href="colleges.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-600">Colleges</a>
+                            <a href="subjects.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-600">Subjects</a>
+                            <a href="trainers.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-600">Trainers</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main id="dashboard-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 opacity-0 transition-opacity duration-500">
+             <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900">Student Feedback Analysis</h1>
+                <p class="mt-2 text-gray-600">Aug-Sept 2025 Semester Data Visualization</p>
+            </div>
+
+            <!-- Filters Section -->
+            <div class="bg-white rounded-lg shadow p-6 mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+                 <!-- Filter dropdowns will be populated dynamically -->
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6 card-hover transition-all duration-300">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-indigo-100 text-indigo-600 mr-4">
+                            <i data-feather="award" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Avg Content Score</p>
+                            <p id="avg-content-score" class="text-2xl font-semibold text-gray-900">...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6 card-hover transition-all duration-300">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+                            <i data-feather="user" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Avg Trainer Score</p>
+                            <p id="avg-trainer-score" class="text-2xl font-semibold text-gray-900">...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6 card-hover transition-all duration-300">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
+                            <i data-feather="trending-up" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Highest Score</p>
+                            <p id="highest-score" class="text-2xl font-semibold text-gray-900">...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6 card-hover transition-all duration-300">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-red-100 text-red-600 mr-4">
+                            <i data-feather="alert-triangle" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Lowest Score</p>
+                            <p id="lowest-score" class="text-2xl font-semibold text-gray-900">...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">College Performance Comparison</h2>
+                    <div class="h-80"><canvas id="collegeRadarChart"></canvas></div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Performance by Semester</h2>
+                    <div class="h-80"><canvas id="semesterBarChart"></canvas></div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Subject Performance Heatmap</h2>
+                    <div id="heatmap" class="h-96"></div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Priority Action Items</h2>
+                    <div class="overflow-y-auto max-h-96">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">College</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="action-items-body" class="bg-white divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <div id="loader" class="loader"></div>
+        <div id="error-message" class="hidden text-center text-red-500 font-semibold p-8"></div>
+    </div>
+
+    <script>
+        // --- DATA FETCHING AND PROCESSING ---
+        // IMPORTANT: Replace this URL with the one you get after deploying your Google Apps Script Web App
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx0L61joIbF6rMUe1nOmwUJ8fn3RlUsI2NB5f1uus-1j-Cs7wYIwKkfJmj1S2HuKSS5UQ/exec';
 
         async function fetchData() {
-            const response = await fetch(SHEET_URL);
-            const text = await response.text();
-            return text.split('\n').map(row => row.split(','));
+            try {
+                const response = await fetch(SCRIPT_URL);
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                const data = await response.json();
+                 if (data.error) {
+                    throw new Error(`Error from script: ${data.error}`);
+                }
+                return data;
+            } catch (error) {
+                console.error('Fetch Error:', error);
+                document.getElementById('error-message').textContent = `Failed to load data: ${error.message}. Please check the SCRIPT_URL and your Apps Script deployment.`;
+                document.getElementById('error-message').classList.remove('hidden');
+                return null;
+            }
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
             const data = await fetchData();
-            const headers = data[0];
-            const rows = data.slice(1);
-
-            // --- PROCESS DATA FOR CHARTS ---
-            const processedData = rows.map(row => {
-                const rowData = {};
-                headers.forEach((header, index) => {
-                    rowData[header.trim()] = row[index] ? row[index].trim() : '';
-                });
-                return rowData;
-            });
+            const loader = document.getElementById('loader');
+            const content = document.getElementById('dashboard-content');
             
-            updateSummaryCards(processedData);
-            createCollegeRadarChart(processedData);
-            createSemesterBarChart(processedData);
-            createHeatmap(processedData);
-            populateActionItems(processedData);
+            loader.style.display = 'none';
+
+            if (data) {
+                // All functions below will now receive the clean JSON data
+                updateSummaryCards(data);
+                createCollegeRadarChart(data);
+                createSemesterBarChart(data);
+                createHeatmap(data);
+                populateActionItems(data);
+                content.classList.add('opacity-100');
+            } else {
+                 content.classList.add('opacity-100'); // Show content area even if error
+            }
+             feather.replace();
+             AOS.init();
         });
 
-        // --- UPDATE UI FUNCTIONS ---
+        // --- UPDATE UI FUNCTIONS (These functions remain largely the same) ---
         function updateSummaryCards(data) {
             const contentScores = data.map(row => parseFloat(row['Content Score'])).filter(score => !isNaN(score));
             const trainerScores = data.map(row => parseFloat(row['Trainer Score'])).filter(score => !isNaN(score));
 
+            if (contentScores.length === 0 || trainerScores.length === 0) return;
+
             const avgContentScore = (contentScores.reduce((a, b) => a + b, 0) / contentScores.length).toFixed(2);
             const avgTrainerScore = (trainerScores.reduce((a, b) => a + b, 0) / trainerScores.length).toFixed(2);
-            const highestScore = Math.max(...contentScores, ...trainerScores).toFixed(2);
-            const lowestScore = Math.min(...contentScores, ...trainerScores).toFixed(2);
+            const allScores = [...contentScores, ...trainerScores];
+            const highestScore = Math.max(...allScores).toFixed(2);
+            const lowestScore = Math.min(...allScores).toFixed(2);
 
             document.getElementById('avg-content-score').textContent = avgContentScore;
             document.getElementById('avg-trainer-score').textContent = avgTrainerScore;
@@ -240,18 +404,20 @@
                 const collegeData = data.filter(row => row['College'] === college);
                 const avgContent = (collegeData.map(r => parseFloat(r['Content Score'])).reduce((a, b) => a + b, 0) / collegeData.length);
                 const avgTrainer = (collegeData.map(r => parseFloat(r['Trainer Score'])).reduce((a, b) => a + b, 0) / collegeData.length);
+                const randomColor = `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}`;
                 return {
                     label: college,
                     data: [avgContent, avgTrainer],
-                    backgroundColor: `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.2)`,
-                    borderColor: `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 1)`,
+                    backgroundColor: `${randomColor}, 0.2)`,
+                    borderColor: `${randomColor}, 1)`,
+                    borderWidth: 1
                 };
             });
 
             new Chart(document.getElementById('collegeRadarChart'), {
                 type: 'radar',
                 data: {
-                    labels: ['Content', 'Trainer'],
+                    labels: ['Content Score', 'Trainer Score'],
                     datasets: datasets
                 },
                 options: { responsive: true, maintainAspectRatio: false }
@@ -273,7 +439,9 @@
                     datasets: [{
                         label: 'Average Score',
                         data: semesterData,
-                        backgroundColor: 'rgba(79, 70, 229, 0.7)'
+                        backgroundColor: 'rgba(79, 70, 229, 0.7)',
+                        borderColor: 'rgba(79, 70, 229, 1)',
+                        borderWidth: 1
                     }]
                 },
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
@@ -281,28 +449,38 @@
         }
         
         function createHeatmap(data) {
+            // ApexCharts needs a slightly different data structure for heatmap series
             const subjects = [...new Set(data.map(row => row['Subject']))];
-            const seriesData = subjects.map(subject => {
-                const subjectRows = data.filter(row => row['Subject'] === subject);
-                const avgScore = (subjectRows.map(r => (parseFloat(r['Content Score']) + parseFloat(r['Trainer Score'])) / 2).reduce((a, b) => a + b, 0) / subjectRows.length);
-                return { x: subject, y: avgScore.toFixed(2) };
+            const colleges = [...new Set(data.map(row => row['College']))];
+
+            const series = colleges.map(college => {
+                return {
+                    name: college,
+                    data: subjects.map(subject => {
+                        const filteredData = data.filter(d => d.College === college && d.Subject === subject);
+                        if (filteredData.length === 0) return { x: subject, y: null };
+                        const avgScore = (filteredData.map(r => (parseFloat(r['Content Score']) + parseFloat(r['Trainer Score'])) / 2).reduce((a,b) => a+b, 0) / filteredData.length);
+                        return { x: subject, y: avgScore.toFixed(2) };
+                    })
+                };
             });
 
             const heatmapOptions = {
-                series: [{ name: 'Average Score', data: seriesData }],
+                series: series,
                 chart: { type: 'heatmap', height: 350, toolbar: { show: false } },
                 plotOptions: {
                     heatmap: {
                         colorScale: {
                             ranges: [
-                                { from: 0, to: 6, color: '#EF4444', name: 'Low' },
-                                { from: 6, to: 8, color: '#F59E0B', name: 'Medium' },
-                                { from: 8, to: 10, color: '#10B981', name: 'High' }
+                                { from: 0, to: 6, color: '#EF4444', name: 'Low (<6)' },
+                                { from: 6, to: 8, color: '#F59E0B', name: 'Medium (6-8)' },
+                                { from: 8, to: 10, color: '#10B981', name: 'High (>8)' }
                             ]
                         }
                     }
                 },
-                dataLabels: { enabled: false }
+                dataLabels: { enabled: true },
+                xaxis: { type: 'category' }
             };
 
             const heatmap = new ApexCharts(document.querySelector("#heatmap"), heatmapOptions);
@@ -313,24 +491,192 @@
             const lowScores = data.filter(row => parseFloat(row['Content Score']) < 7 || parseFloat(row['Trainer Score']) < 7);
             const tableBody = document.getElementById('action-items-body');
             tableBody.innerHTML = '';
+            if (lowScores.length === 0) {
+                 tableBody.innerHTML = '<tr><td colspan="3" class="text-center p-4 text-gray-500">No priority action items found. Great work!</td></tr>';
+                 return;
+            }
             lowScores.forEach(row => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${row['Subject']}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${row['College']}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Review feedback</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-semibold">Review Feedback</td>
                 `;
                 tableBody.appendChild(tr);
             });
         }
-
-        feather.replace();
-        AOS.init();
     </script>
 </body>
-
 </html>
+';
 
+        async function fetchData() {
+            try {
+                const response = await fetch(SCRIPT_URL);
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                const data = await response.json();
+                 if (data.error) {
+                    throw new Error(`Error from script: ${data.error}`);
+                }
+                return data;
+            } catch (error) {
+                console.error('Fetch Error:', error);
+                document.getElementById('error-message').textContent = `Failed to load data: ${error.message}. Please check the SCRIPT_URL and your Apps Script deployment.`;
+                document.getElementById('error-message').classList.remove('hidden');
+                return null;
+            }
+        }
 
+        document.addEventListener('DOMContentLoaded', async () => {
+            const data = await fetchData();
+            const loader = document.getElementById('loader');
+            const content = document.getElementById('dashboard-content');
+            
+            loader.style.display = 'none';
 
+            if (data) {
+                // All functions below will now receive the clean JSON data
+                updateSummaryCards(data);
+                createCollegeRadarChart(data);
+                createSemesterBarChart(data);
+                createHeatmap(data);
+                populateActionItems(data);
+                content.classList.add('opacity-100');
+            } else {
+                 content.classList.add('opacity-100'); // Show content area even if error
+            }
+             feather.replace();
+             AOS.init();
+        });
 
+        // --- UPDATE UI FUNCTIONS (These functions remain largely the same) ---
+        function updateSummaryCards(data) {
+            const contentScores = data.map(row => parseFloat(row['Content Score'])).filter(score => !isNaN(score));
+            const trainerScores = data.map(row => parseFloat(row['Trainer Score'])).filter(score => !isNaN(score));
+
+            if (contentScores.length === 0 || trainerScores.length === 0) return;
+
+            const avgContentScore = (contentScores.reduce((a, b) => a + b, 0) / contentScores.length).toFixed(2);
+            const avgTrainerScore = (trainerScores.reduce((a, b) => a + b, 0) / trainerScores.length).toFixed(2);
+            const allScores = [...contentScores, ...trainerScores];
+            const highestScore = Math.max(...allScores).toFixed(2);
+            const lowestScore = Math.min(...allScores).toFixed(2);
+
+            document.getElementById('avg-content-score').textContent = avgContentScore;
+            document.getElementById('avg-trainer-score').textContent = avgTrainerScore;
+            document.getElementById('highest-score').textContent = highestScore;
+            document.getElementById('lowest-score').textContent = lowestScore;
+        }
+
+        function createCollegeRadarChart(data) {
+            const colleges = [...new Set(data.map(row => row['College']))];
+            const datasets = colleges.map(college => {
+                const collegeData = data.filter(row => row['College'] === college);
+                const avgContent = (collegeData.map(r => parseFloat(r['Content Score'])).reduce((a, b) => a + b, 0) / collegeData.length);
+                const avgTrainer = (collegeData.map(r => parseFloat(r['Trainer Score'])).reduce((a, b) => a + b, 0) / collegeData.length);
+                const randomColor = `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}`;
+                return {
+                    label: college,
+                    data: [avgContent, avgTrainer],
+                    backgroundColor: `${randomColor}, 0.2)`,
+                    borderColor: `${randomColor}, 1)`,
+                    borderWidth: 1
+                };
+            });
+
+            new Chart(document.getElementById('collegeRadarChart'), {
+                type: 'radar',
+                data: {
+                    labels: ['Content Score', 'Trainer Score'],
+                    datasets: datasets
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+        
+        function createSemesterBarChart(data) {
+            const semesters = [...new Set(data.map(row => row['Semester']))].sort();
+            const semesterData = semesters.map(semester => {
+                const semesterRows = data.filter(row => row['Semester'] === semester);
+                const avgScore = (semesterRows.map(r => (parseFloat(r['Content Score']) + parseFloat(r['Trainer Score'])) / 2).reduce((a, b) => a + b, 0) / semesterRows.length).toFixed(2);
+                return avgScore;
+            });
+
+            new Chart(document.getElementById('semesterBarChart'), {
+                type: 'bar',
+                data: {
+                    labels: semesters,
+                    datasets: [{
+                        label: 'Average Score',
+                        data: semesterData,
+                        backgroundColor: 'rgba(79, 70, 229, 0.7)',
+                        borderColor: 'rgba(79, 70, 229, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            });
+        }
+        
+        function createHeatmap(data) {
+            // ApexCharts needs a slightly different data structure for heatmap series
+            const subjects = [...new Set(data.map(row => row['Subject']))];
+            const colleges = [...new Set(data.map(row => row['College']))];
+
+            const series = colleges.map(college => {
+                return {
+                    name: college,
+                    data: subjects.map(subject => {
+                        const filteredData = data.filter(d => d.College === college && d.Subject === subject);
+                        if (filteredData.length === 0) return { x: subject, y: null };
+                        const avgScore = (filteredData.map(r => (parseFloat(r['Content Score']) + parseFloat(r['Trainer Score'])) / 2).reduce((a,b) => a+b, 0) / filteredData.length);
+                        return { x: subject, y: avgScore.toFixed(2) };
+                    })
+                };
+            });
+
+            const heatmapOptions = {
+                series: series,
+                chart: { type: 'heatmap', height: 350, toolbar: { show: false } },
+                plotOptions: {
+                    heatmap: {
+                        colorScale: {
+                            ranges: [
+                                { from: 0, to: 6, color: '#EF4444', name: 'Low (<6)' },
+                                { from: 6, to: 8, color: '#F59E0B', name: 'Medium (6-8)' },
+                                { from: 8, to: 10, color: '#10B981', name: 'High (>8)' }
+                            ]
+                        }
+                    }
+                },
+                dataLabels: { enabled: true },
+                xaxis: { type: 'category' }
+            };
+
+            const heatmap = new ApexCharts(document.querySelector("#heatmap"), heatmapOptions);
+            heatmap.render();
+        }
+
+        function populateActionItems(data) {
+            const lowScores = data.filter(row => parseFloat(row['Content Score']) < 7 || parseFloat(row['Trainer Score']) < 7);
+            const tableBody = document.getElementById('action-items-body');
+            tableBody.innerHTML = '';
+            if (lowScores.length === 0) {
+                 tableBody.innerHTML = '<tr><td colspan="3" class="text-center p-4 text-gray-500">No priority action items found. Great work!</td></tr>';
+                 return;
+            }
+            lowScores.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${row['Subject']}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${row['College']}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-semibold">Review Feedback</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+</html>
