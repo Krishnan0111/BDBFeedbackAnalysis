@@ -74,6 +74,14 @@
                 <p class="mt-2 text-gray-600">Aug-Sept 2025 Semester Data Visualization</p>
             </div>
 
+            <!-- Error message will now be displayed here -->
+            <div id="error-message" class="hidden mb-8"></div>
+
+            <!-- Filters Section -->
+            <div class="bg-white rounded-lg shadow p-6 mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+                 <!-- Filter dropdowns will be populated dynamically -->
+            </div>
+
             <!-- Summary Cards -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div class="bg-white rounded-lg shadow p-6 card-hover transition-all duration-300">
@@ -156,29 +164,67 @@
             </div>
         </main>
         <div id="loader" class="loader"></div>
-        <div id="error-message" class="hidden text-center text-red-500 font-semibold p-8"></div>
+        <!-- This container is no longer needed here as it's moved inside the main content area -->
     </div>
 
     <script>
         // --- DATA FETCHING AND PROCESSING ---
+        // Your Web App URL has been placed here.
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx0L61joIbF6rMUe1nOmwUJ8fn3RlUsI2NB5f1uus-1j-Cs7wYIwKkfJmj1S2HuKSS5UQ/exec';
 
         async function fetchData() {
-            // Check if the placeholder URL is still there
-            if (SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbx0L61joIbF6rMUe1nOmwUJ8fn3RlUsI2NB5f1uus-1j-Cs7wYIwKkfJmj1S2HuKSS5UQ/exec') {
-                document.getElementById('error-message').innerHTML = `<p><strong>Configuration Error:</strong> Please paste your Google Apps Script URL into this file.</p>`;
-                document.getElementById('error-message').classList.remove('hidden');
-                return null;
-            }
+            const loader = document.getElementById('loader');
+            const content = document.getElementById('dashboard-content');
+            const errorContainer = document.getElementById('error-message');
+            
             try {
+                // 1. Check if the URL is a placeholder (logic corrected)
+                if (!SCRIPT_URL || SCRIPT_URL.includes('PASTE_YOUR_URL_HERE')) {
+                    throw new Error('ConfigurationNeeded: Please replace the placeholder SCRIPT_URL in your HTML file with the actual URL from your new Apps Script deployment.');
+                }
+
+                // 2. Fetch data from the script
                 const response = await fetch(SCRIPT_URL);
-                if (!response.ok) throw new Error(`Network error: ${response.statusText}`);
+
+                // 3. Check for network or server errors (like 404, 500)
+                if (!response.ok) {
+                    const errorText = await response.text(); // Get more details if possible
+                    throw new Error(`Network error: The server responded with status ${response.status}. Details: ${errorText}`);
+                }
+                
+                // 4. Try to parse the response as JSON
                 const data = await response.json();
-                if (data.error) throw new Error(`Script error: ${data.error}`);
+
+                // 5. Check for an error message returned from within the Apps Script itself
+                if (data.error) {
+                    throw new Error(`Script Error: ${data.details || data.error}`);
+                }
+                
+                // Success! Hide any previous error messages.
+                errorContainer.classList.add('hidden');
                 return data;
+
             } catch (error) {
-                document.getElementById('error-message').textContent = `Failed to load data: ${error.message}`;
-                document.getElementById('error-message').classList.remove('hidden');
+                console.error('Dashboard Error:', error);
+                
+                // Display the detailed error message directly in the UI for easy debugging
+                errorContainer.innerHTML = `
+                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg" role="alert">
+                      <p class="font-bold">Failed to Load Dashboard Data</p>
+                      <p class="mt-1">${error.message}</p>
+                      <p class="mt-3 text-sm">
+                        <strong>Troubleshooting Steps:</strong>
+                        <ul class="list-disc list-inside mt-1">
+                          <li>Ensure the \`SCRIPT_URL\` in the HTML file is correct.</li>
+                          <li>In Google Apps Script, re-deploy your script and make sure "Who has access" is set to "Anyone".</li>
+                          <li>Check that the sheet name in your script ('Data') matches the tab in your Google Sheet.</li>
+                        </ul>
+                      </p>
+                    </div>
+                `;
+                errorContainer.classList.remove('hidden');
+                loader.style.display = 'none'; // Hide loader on error
+                content.classList.add('opacity-100'); // Show content area to display error
                 return null;
             }
         }
@@ -191,12 +237,15 @@
             loader.style.display = 'none';
 
             if (data) {
+                // All functions below will now receive the clean JSON data
                 updateSummaryCards(data);
                 createCollegeRadarChart(data);
                 createSemesterBarChart(data);
                 createHeatmap(data);
                 populateActionItems(data);
                 content.classList.add('opacity-100');
+            } else {
+                 content.classList.add('opacity-100'); // Show content area even if error
             }
              feather.replace();
              AOS.init();
@@ -206,12 +255,15 @@
         function updateSummaryCards(data) {
             const contentScores = data.map(row => parseFloat(row['Content Score'])).filter(score => !isNaN(score));
             const trainerScores = data.map(row => parseFloat(row['Trainer Score'])).filter(score => !isNaN(score));
+
             if (contentScores.length === 0 || trainerScores.length === 0) return;
+
             const avgContentScore = (contentScores.reduce((a, b) => a + b, 0) / contentScores.length).toFixed(2);
             const avgTrainerScore = (trainerScores.reduce((a, b) => a + b, 0) / trainerScores.length).toFixed(2);
             const allScores = [...contentScores, ...trainerScores];
             const highestScore = Math.max(...allScores).toFixed(2);
             const lowestScore = Math.min(...allScores).toFixed(2);
+
             document.getElementById('avg-content-score').textContent = avgContentScore;
             document.getElementById('avg-trainer-score').textContent = avgTrainerScore;
             document.getElementById('highest-score').textContent = highestScore;
@@ -233,9 +285,13 @@
                     borderWidth: 1
                 };
             });
+
             new Chart(document.getElementById('collegeRadarChart'), {
                 type: 'radar',
-                data: { labels: ['Content Score', 'Trainer Score'], datasets: datasets },
+                data: {
+                    labels: ['Content Score', 'Trainer Score'],
+                    datasets: datasets
+                },
                 options: { responsive: true, maintainAspectRatio: false }
             });
         }
@@ -247,6 +303,7 @@
                 const avgScore = (semesterRows.map(r => (parseFloat(r['Content Score']) + parseFloat(r['Trainer Score'])) / 2).reduce((a, b) => a + b, 0) / semesterRows.length).toFixed(2);
                 return avgScore;
             });
+
             new Chart(document.getElementById('semesterBarChart'), {
                 type: 'bar',
                 data: {
@@ -264,8 +321,10 @@
         }
         
         function createHeatmap(data) {
+            // ApexCharts needs a slightly different data structure for heatmap series
             const subjects = [...new Set(data.map(row => row['Subject']))];
             const colleges = [...new Set(data.map(row => row['College']))];
+
             const series = colleges.map(college => {
                 return {
                     name: college,
@@ -277,6 +336,7 @@
                     })
                 };
             });
+
             const heatmapOptions = {
                 series: series,
                 chart: { type: 'heatmap', height: 350, toolbar: { show: false } },
@@ -294,6 +354,7 @@
                 dataLabels: { enabled: true },
                 xaxis: { type: 'category' }
             };
+
             const heatmap = new ApexCharts(document.querySelector("#heatmap"), heatmapOptions);
             heatmap.render();
         }
@@ -319,5 +380,4 @@
     </script>
 </body>
 </html>
-
 
