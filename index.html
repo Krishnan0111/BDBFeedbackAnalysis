@@ -179,7 +179,7 @@
             
             try {
                 // 1. Check if the URL is a placeholder (logic corrected)
-                if (!SCRIPT_URL || SCRIPT_URL.includes('PASTE_YOUR_URL_HERE')) {
+                if (!SCRIPT_URL || SCRIPT_URL.includes('https://script.google.com/macros/s/AKfycbx0L61joIbF6rMUe1nOmwUJ8fn3RlUsI2NB5f1uus-1j-Cs7wYIwKkfJmj1S2HuKSS5UQ/exec')) {
                     throw new Error('ConfigurationNeeded: Please replace the placeholder SCRIPT_URL in your HTML file with the actual URL from your new Apps Script deployment.');
                 }
 
